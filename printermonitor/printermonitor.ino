@@ -44,6 +44,14 @@ SOFTWARE.
 #define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN) 
 #define numberOfHours(_time_) (_time_ / SECS_PER_HOUR)
 
+// NOTE: Put your encoder pins here!
+// TODO: Put into settings file
+#define encoderOutA D4 // CLK pin of Rotary Enocoder
+#define encoderOutB D5 // DT pin of Rotary Enocoder
+
+int presentEncoderState;
+int previousEncoderState; 
+
 // Initialize the oled display for I2C_DISPLAY_ADDRESS
 // SDA_PIN and SCL_PIN
 #if defined(DISPLAY_SH1106)
@@ -198,6 +206,9 @@ String COLOR_THEMES = "<option>red</option>"
                             
 
 void setup() {
+  pinMode (encoderOutA,INPUT);
+  pinMode (encoderOutB,INPUT); 
+  
   Serial.begin(115200);
   SPIFFS.begin();
   delay(10);
@@ -361,6 +372,22 @@ void findMDNS() {
 // Main Looop
 //************************************************************
 void loop() {
+
+
+   // Rotary encoder check
+   presentEncoderState = digitalRead(encoderOutA); 
+   if (presentEncoderState != previousEncoderState)
+   {     
+      if (digitalRead(encoderOutB) != presentEncoderState) 
+      { 
+        ui.previousFrame();
+      } 
+      else 
+      {
+        ui.nextFrame();
+      }
+   } 
+   previousEncoderState = presentEncoderState;
   
    //Get Time Update
   if((getMinutesFromLastRefresh() >= minutesBetweenDataRefresh) || lastEpoch == 0) {
